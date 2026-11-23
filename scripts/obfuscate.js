@@ -1,8 +1,11 @@
 // wdt 发布混淆：main.js / preload.js / renderer/bundle.js → dist-app/
 // javascript-obfuscator 深度混淆：控制流扁平化 + RC4 字符串阵列 + 死代码注入 + 自我防御
 // （自墨码 scripts/obfuscate.js 移植，选项一致；源码在仓，混淆只为发布产物）
+// 注意：renderer bundle 含 Milkdown/ProseMirror（4MB+），直接混淆会性能爆炸；
+// 先用 esbuild --minify 压到 ~1.5MB 再混淆（语义等价，产物更小更快）。
 const fs = require('fs');
 const JavaScriptObfuscator = require('javascript-obfuscator');
+const esbuild = require('esbuild');
 
 const opts = () => ({
   compact: true,
@@ -52,7 +55,12 @@ fs.writeFileSync('dist-app/package.json',
   JSON.stringify({ name: pkg.name, productName: pkg.productName, version: pkg.version, main: 'main.js' }, null, 2));
 
 for (const [src, dst] of files) {
-  const code = fs.readFileSync(src, 'utf8');
+  let code = fs.readFileSync(src, 'utf8');
+  // renderer bundle 过大：先 minify 再混淆（语义等价，产物更小更快）
+  if (src === 'renderer/bundle.js') {
+    code = esbuild.transformSync(code, { minify: true, loader: 'js' }).code;
+    console.log(`minified bundle: ${(code.length / 1024).toFixed(0)}KB`);
+  }
   const out = JavaScriptObfuscator.obfuscate(code, opts()).getObfuscatedCode();
   fs.writeFileSync(dst, out);
   console.log(`obfuscated ${src} -> ${dst} ${(out.length / 1024).toFixed(0)}KB`);

@@ -34,7 +34,9 @@
   },
   "devDependencies": {
     "electron": "^45.3.3",
-    "esbuild": "^0.25.0"
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.25.0",
+    "javascript-obfuscator": "^4.2.2"
   },
   "build": {
     "appId": "org.wdt.editor",
@@ -67,6 +69,8 @@
     "icon": "icon.ico"
   },
   "allowScripts": {
-    "electron@45.3.4": true
+    "electron@45.3.4": true,
+    "esbuild@0.25.12": true,
+    "electron-winstaller@5.4.0": true
   }
 }
