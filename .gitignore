@@ -15,3 +15,6 @@ ai/models/
 __pycache__/
 *.pyc
 .DS_Store
+
+# CDP 自测截图（verify.js 产物，可重建）
+verify-*.png

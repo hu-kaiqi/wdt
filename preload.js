@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('wdt', {
   clipRead: () => ipcRenderer.invoke('clip:read'),
   exportPdf: ({ html, defaultName, outPath }) => ipcRenderer.invoke('export:pdf', { html, defaultName, outPath }),
   aiInfer: (text) => ipcRenderer.invoke('ai:inferName', text),
+  getConfig: () => ipcRenderer.invoke('config:get'),
+  setConfig: (patch) => ipcRenderer.invoke('config:set', patch),
+  onLangChanged: (cb) => ipcRenderer.on('lang:changed', (e, lang) => cb(lang)),
   platform: process.platform,
   onAction: (cb) => ipcRenderer.on('action', (e, a) => cb(a)),
 });

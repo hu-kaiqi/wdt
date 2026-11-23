@@ -31,6 +31,10 @@ import { tags as t } from "@lezer/highlight";
 import MarkdownIt from "markdown-it";
 import TurndownService from "turndown";
 
+// 界面语言（两包都打进 bundle，运行时切换；主进程 require 同一份 locales/）
+import i18n from "../../locales/index.js";
+const { t: tt, setLang, getLang } = i18n;
+
 // 自测错误收集（CDP 读 window.__errors）
 window.__errors = [];
 window.addEventListener("error", (e) => window.__errors.push(String(e.message) + "\n" + (e.error && e.error.stack || "")));
@@ -107,117 +111,117 @@ const ICONS = {
 
 // ============ Ribbon 定义（Word 2010 布局，数据驱动） ============
 const RIBBON = [
-  { id: "home", label: "开始", groups: [
-    { name: "剪贴板", layout: [
-      [ { id: "paste", svg: ICONS.paste, text: "粘贴", big: true, cmd: "paste" },
+  { id: "home", label: "ribbon.tab.home", groups: [
+    { name: "ribbon.grp.clipboard", layout: [
+      [ { id: "paste", svg: ICONS.paste, text: "rib.btn.paste", big: true, cmd: "paste" },
         { stack: [
-          { id: "cut", glyph: "✂", text: "剪切", cmd: "cut" },
-          { id: "copy", glyph: "📄", text: "复制", cmd: "copy" },
-          { id: "brush", glyph: "🖌", text: "格式刷", stub: true },
+          { id: "cut", glyph: "✂", text: "rib.btn.cut", cmd: "cut" },
+          { id: "copy", glyph: "📄", text: "rib.btn.copy", cmd: "copy" },
+          { id: "brush", glyph: "🖌", text: "rib.btn.brush", stub: true },
         ]} ],
     ]},
-    { name: "字体", layout: [
-      [ { select: "font", title: "字体" },
-        { select: "size", title: "字号" },
-        { id: "fontGrow", glyph: "A^", cmd: "fontGrow", title: "增大字号", stub: true },
-        { id: "fontShrink", glyph: "Av", cmd: "fontShrink", title: "减小字号", stub: true },
-        { id: "clearFormat", glyph: "A̸", cmd: "clearFormat", title: "清除所有格式" } ],
-      [ { id: "bold", glyph: "B", cmd: "bold", title: "加粗 (Ctrl+B)", style: "font-weight:700;font-family:'Times New Roman',serif;" },
-        { id: "italic", glyph: "I", cmd: "italic", title: "斜体 (Ctrl+I)", style: "font-style:italic;font-family:'Times New Roman',serif;" },
-        { id: "underline", glyph: "U̲", cmd: "underline", title: "下划线 (Markdown扩展/占位)", stub: true },
-        { id: "strike", glyph: "abc", cmd: "strike", title: "删除线", style: "text-decoration:line-through;" },
-        { id: "subscript", glyph: "x₂", cmd: "subscript", title: "下标 (占位)", stub: true },
-        { id: "superscript", glyph: "x²", cmd: "superscript", title: "上标 (占位)", stub: true },
-        { id: "code", glyph: "</>", cmd: "inlineCode", title: "行内代码" },
+    { name: "ribbon.grp.font", layout: [
+      [ { select: "font", title: "rib.sel.font" },
+        { select: "size", title: "rib.sel.size" },
+        { id: "fontGrow", glyph: "A^", cmd: "fontGrow", title: "rib.btn.fontGrow", stub: true },
+        { id: "fontShrink", glyph: "Av", cmd: "fontShrink", title: "rib.btn.fontShrink", stub: true },
+        { id: "clearFormat", glyph: "A̸", cmd: "clearFormat", title: "rib.btn.clearFormat" } ],
+      [ { id: "bold", glyph: "B", cmd: "bold", title: "rib.btn.bold", style: "font-weight:700;font-family:'Times New Roman',serif;" },
+        { id: "italic", glyph: "I", cmd: "italic", title: "rib.btn.italic", style: "font-style:italic;font-family:'Times New Roman',serif;" },
+        { id: "underline", glyph: "U̲", cmd: "underline", title: "rib.btn.underline", stub: true },
+        { id: "strike", glyph: "abc", cmd: "strike", title: "rib.btn.strike", style: "text-decoration:line-through;" },
+        { id: "subscript", glyph: "x₂", cmd: "subscript", title: "rib.btn.subscript", stub: true },
+        { id: "superscript", glyph: "x²", cmd: "superscript", title: "rib.btn.superscript", stub: true },
+        { id: "code", glyph: "</>", cmd: "inlineCode", title: "rib.btn.inlineCode" },
         { sep: true },
-        { id: "fontColor", glyph: "A", cmd: "fontColor", title: "字体颜色 (占位)", stub: true, style: "border-bottom: 3px solid #c00000; font-weight:700;" } ],
+        { id: "fontColor", glyph: "A", cmd: "fontColor", title: "rib.btn.fontColor", stub: true, style: "border-bottom: 3px solid #c00000; font-weight:700;" } ],
     ]},
-    { name: "段落", layout: [
-      [ { id: "ul", svg: ICONS.bulletList, cmd: "bulletList", title: "项目符号 (Ctrl+Shift+L)" },
-        { id: "ol", svg: ICONS.orderedList, cmd: "orderedList", title: "编号" },
-        { id: "multilist", glyph: "1.a▾", stub: true, title: "多级列表 (占位)" },
-        { id: "outdent", glyph: "⇤", stub: true, title: "减少缩进量" },
-        { id: "indent", glyph: "⇥", stub: true, title: "增加缩进量" } ],
-      [ { id: "alignLeft", svg: ICONS.alignLeft, stub: true, title: "左对齐" },
-        { id: "alignCenter", svg: ICONS.alignCenter, stub: true, title: "居中" },
-        { id: "alignRight", svg: ICONS.alignRight, stub: true, title: "右对齐" },
-        { id: "justify", svg: ICONS.justify, stub: true, title: "两端对齐" },
+    { name: "ribbon.grp.paragraph", layout: [
+      [ { id: "ul", svg: ICONS.bulletList, cmd: "bulletList", title: "rib.btn.bullets" },
+        { id: "ol", svg: ICONS.orderedList, cmd: "orderedList", title: "rib.btn.numbering" },
+        { id: "multilist", glyph: "1.a▾", stub: true, title: "rib.btn.multilevel" },
+        { id: "outdent", glyph: "⇤", stub: true, title: "rib.btn.decreaseIndent" },
+        { id: "indent", glyph: "⇥", stub: true, title: "rib.btn.increaseIndent" } ],
+      [ { id: "alignLeft", svg: ICONS.alignLeft, stub: true, title: "rib.btn.alignLeft" },
+        { id: "alignCenter", svg: ICONS.alignCenter, stub: true, title: "rib.btn.alignCenter" },
+        { id: "alignRight", svg: ICONS.alignRight, stub: true, title: "rib.btn.alignRight" },
+        { id: "justify", svg: ICONS.justify, stub: true, title: "rib.btn.justify" },
         { sep: true },
-        { id: "quote", glyph: "❝", cmd: "quote", title: "引用" },
-        { id: "hr", glyph: "―", cmd: "hr", title: "水平线 (Ctrl+Enter)" } ],
+        { id: "quote", glyph: "❝", cmd: "quote", title: "rib.btn.quote" },
+        { id: "hr", glyph: "―", cmd: "hr", title: "rib.btn.hr" } ],
     ]},
-    { name: "样式", styles: [
-      { id: "normal", name: "正文", cmd: "normalPara", cls: "sc-dim", title: "正文 (Ctrl+Shift+N)" },
-      { id: "nospacing", name: "无间隔", cmd: "normalPara", cls: "sc-a3", title: "无间隔（映射正文）" },
-      { id: "h1", name: "标题 1", cmd: "h1", cls: "sc-a1", title: "标题 1 (Alt+Ctrl+1)" },
-      { id: "h2", name: "标题 2", cmd: "h2", cls: "sc-a2", title: "标题 2 (Alt+Ctrl+2)" },
-      { id: "h3", name: "标题 3", cmd: "h3", cls: "sc-a2", title: "标题 3 (Alt+Ctrl+3)" },
-      { id: "subtitle", name: "副标题", cmd: "h2", cls: "sc-a3", title: "副标题（映射 H2）" },
+    { name: "ribbon.grp.styles", styles: [
+      { id: "normal", name: "rib.style.normal", cmd: "normalPara", cls: "sc-dim", title: "rib.style.normal.tip" },
+      { id: "nospacing", name: "rib.style.nospacing", cmd: "normalPara", cls: "sc-a3", title: "rib.style.nospacing.tip" },
+      { id: "h1", name: "rib.style.h1", cmd: "h1", cls: "sc-a1", title: "rib.style.h1.tip" },
+      { id: "h2", name: "rib.style.h2", cmd: "h2", cls: "sc-a2", title: "rib.style.h2.tip" },
+      { id: "h3", name: "rib.style.h3", cmd: "h3", cls: "sc-a2", title: "rib.style.h3.tip" },
+      { id: "subtitle", name: "rib.style.subtitle", cmd: "h2", cls: "sc-a3", title: "rib.style.subtitle.tip" },
     ]},
-    { name: "编辑", layout: [
+    { name: "ribbon.grp.editing", layout: [
       [ { stack: [
-          { id: "find", glyph: "🔍", text: "查找 ▾", stub: true, title: "查找 (Ctrl+F)" },
-          { id: "replace", glyph: "ab", text: "替换", stub: true, title: "替换 (Ctrl+H)" },
-          { id: "select", glyph: "➤", text: "选择 ▾", stub: true, title: "选择" },
+          { id: "find", glyph: "🔍", text: "rib.btn.find", stub: true, title: "rib.btn.find.tip" },
+          { id: "replace", glyph: "ab", text: "rib.btn.replace", stub: true, title: "rib.btn.replace.tip" },
+          { id: "select", glyph: "➤", text: "rib.btn.select", stub: true, title: "rib.btn.select.tip" },
         ]} ],
     ]},
   ]},
-  { id: "insert", label: "插入", groups: [
-    { name: "表格和插图", items: [
-      { id: "table", glyph: "▦", text: "表格", big: true, cmd: "table" },
-      { id: "image", glyph: "🖼", text: "图片", big: true, cmd: "image" },
-      { id: "link", glyph: "🔗", text: "链接", big: true, cmd: "link", title: "链接 (Ctrl+K)" },
+  { id: "insert", label: "ribbon.tab.insert", groups: [
+    { name: "ribbon.grp.tablesIllustrations", items: [
+      { id: "table", glyph: "▦", text: "rib.btn.table", big: true, cmd: "table" },
+      { id: "image", glyph: "🖼", text: "rib.btn.picture", big: true, cmd: "image" },
+      { id: "link", glyph: "🔗", text: "rib.btn.hyperlink", big: true, cmd: "link", title: "rib.btn.hyperlink.tip" },
     ]},
-    { name: "代码", items: [
-      { id: "codeblock", glyph: "{ }", text: "代码块", big: true, cmd: "codeBlock" },
+    { name: "ribbon.grp.code", items: [
+      { id: "codeblock", glyph: "{ }", text: "rib.btn.codeblock", big: true, cmd: "codeBlock" },
     ]},
-    { name: "页", items: [
-      { id: "pagebreak", glyph: "⤓", text: "分割线", big: true, cmd: "hr", title: "分割线（Markdown 水平线）" },
+    { name: "ribbon.grp.pages", items: [
+      { id: "pagebreak", glyph: "⤓", text: "rib.btn.divider", big: true, cmd: "hr", title: "rib.btn.divider.tip" },
     ]},
-    { name: "页眉和页脚", items: [
-      { id: "header", glyph: "🗏", text: "页眉", big: true, stub: true, title: "Markdown 无页眉——占位" },
-      { id: "footer", glyph: "🗛", text: "页脚", big: true, stub: true },
-    ]},
-  ]},
-  { id: "layout", label: "页面布局", groups: [
-    { name: "页面设置", items: [
-      { id: "margins", glyph: "🗘", text: "页边距", stub: true },
-      { id: "size", glyph: "▭", text: "纸张大小", stub: true },
-    ]},
-    { name: "稿纸", items: [
-      { id: "grid", glyph: "#", text: "稿纸设置", stub: true },
+    { name: "ribbon.grp.headerFooter", items: [
+      { id: "header", glyph: "🗏", text: "rib.btn.header", big: true, stub: true, title: "rib.btn.header.tip" },
+      { id: "footer", glyph: "🗛", text: "rib.btn.footer", big: true, stub: true },
     ]},
   ]},
-  { id: "refs", label: "引用", groups: [
-    { name: "目录", items: [
-      { id: "toc", glyph: "☰", text: "目录", cmd: "toc", title: "插入 [TOC] 标记" },
+  { id: "layout", label: "ribbon.tab.layout", groups: [
+    { name: "ribbon.grp.pageSetup", items: [
+      { id: "margins", glyph: "🗘", text: "rib.btn.margins", stub: true },
+      { id: "size", glyph: "▭", text: "rib.btn.paperSize", stub: true },
     ]},
-    { name: "脚注", items: [
-      { id: "footnote", glyph: "¹", text: "插入脚注", stub: true },
-    ]},
-  ]},
-  { id: "mail", label: "邮件", groups: [
-    { name: "开始邮件合并", items: [
-      { id: "mm", glyph: "✉", text: "开始邮件合并", stub: true, big: true },
+    { name: "ribbon.grp.grid", items: [
+      { id: "grid", glyph: "#", text: "rib.btn.gridSettings", stub: true },
     ]},
   ]},
-  { id: "review", label: "审阅", groups: [
-    { name: "校对", items: [
-      { id: "spell", glyph: "✓", text: "拼写和语法", stub: true, big: true },
+  { id: "refs", label: "ribbon.tab.refs", groups: [
+    { name: "ribbon.grp.toc", items: [
+      { id: "toc", glyph: "☰", text: "rib.btn.toc", cmd: "toc", title: "rib.btn.toc.tip" },
     ]},
-    { name: "批注", items: [
-      { id: "comment", glyph: "💬", text: "新建批注", stub: true, big: true },
+    { name: "ribbon.grp.footnotes", items: [
+      { id: "footnote", glyph: "¹", text: "rib.btn.footnote", stub: true },
     ]},
   ]},
-  { id: "view", label: "视图", groups: [
-    { name: "文档视图", items: [
-      { id: "v-presentation", glyph: "🗔", text: "表现模式", big: true, viewMode: "presentation", title: "富文本视图：输入不自动转换 Markdown" },
-      { id: "v-hybrid", glyph: "📖", text: "半表现模式", big: true, viewMode: "hybrid", title: "Typora 式：实时渲染" },
-      { id: "v-source", glyph: "✎", text: "代码模式", big: true, viewMode: "source", title: "纯 Markdown 源码" },
+  { id: "mail", label: "ribbon.tab.mail", groups: [
+    { name: "ribbon.grp.mailMerge", items: [
+      { id: "mm", glyph: "✉", text: "rib.btn.mailMerge", stub: true, big: true },
     ]},
-    { name: "显示", items: [
-      { id: "ruler", glyph: "📏", text: "标尺", stub: true },
-      { id: "nav", glyph: "⇉", text: "导航窗格", stub: true },
+  ]},
+  { id: "review", label: "ribbon.tab.review", groups: [
+    { name: "ribbon.grp.proofing", items: [
+      { id: "spell", glyph: "✓", text: "rib.btn.spelling", stub: true, big: true },
+    ]},
+    { name: "ribbon.grp.comments", items: [
+      { id: "comment", glyph: "💬", text: "rib.btn.comment", stub: true, big: true },
+    ]},
+  ]},
+  { id: "view", label: "ribbon.tab.view", groups: [
+    { name: "ribbon.grp.docViews", items: [
+      { id: "v-presentation", glyph: "🗔", text: "rib.btn.viewPresentation", big: true, viewMode: "presentation", title: "rib.btn.viewPresentation.tip" },
+      { id: "v-hybrid", glyph: "📖", text: "rib.btn.viewHybrid", big: true, viewMode: "hybrid", title: "rib.btn.viewHybrid.tip" },
+      { id: "v-source", glyph: "✎", text: "rib.btn.viewSource", big: true, viewMode: "source", title: "rib.btn.viewSource.tip" },
+    ]},
+    { name: "ribbon.grp.show", items: [
+      { id: "ruler", glyph: "📏", text: "rib.btn.ruler", stub: true },
+      { id: "nav", glyph: "⇉", text: "rib.btn.navPane", stub: true },
     ]},
   ]},
 ];
@@ -232,7 +236,7 @@ function renderRibbonTabs() {
   for (const tab of RIBBON) {
     const d = document.createElement("div");
     d.className = "rtab" + (tab.id === activeTab ? " active" : "");
-    d.textContent = tab.label;
+    d.textContent = tt(tab.label);
     d.onclick = () => {
       if (ribbonCollapsed) {
         ribbonCollapsed = false;
@@ -261,7 +265,7 @@ function makeRibbonBtn(it) {
   if (it.select) {
     const sel = document.createElement("select");
     sel.className = "rsel";
-    sel.title = it.title || "";
+    sel.title = tt(it.title) || "";
     if (it.select === "font") {
       for (const f of ["宋体", "微软雅黑", "Calibri", "Consolas"]) {
         sel.add(new Option(f, f, false, f === "宋体"));
@@ -271,22 +275,23 @@ function makeRibbonBtn(it) {
         sel.add(new Option(s, s, false, s === "五号"));
       }
     }
-    sel.onchange = () => toast("字体/字号设置（占位）");
+    sel.onchange = () => toast(tt("toast.fontStub"));
     return sel;
   }
   const b = document.createElement("button");
   b.className = "rbtn" + (it.big ? " rbtn-big" : "") + (it.text ? " rbtn-with-text" : "");
   if (it.style) b.style.cssText = it.style;
-  b.title = it.title || it.text || "";
+  b.title = tt(it.title) || tt(it.text) || "";
 
   let iconHtml = "";
   if (it.svg) iconHtml = `<span class="rb-glyph">${it.svg}</span>`;
   else if (it.glyph) iconHtml = `<span class="rb-glyph">${it.glyph}</span>`;
 
-  b.innerHTML = iconHtml + (it.text ? `<span class="rb-text">${it.text}</span>` : "");
+  const label = it.text ? tt(it.text) : "";
+  b.innerHTML = iconHtml + (label ? `<span class="rb-text">${label}</span>` : "");
 
   if (it.stub) {
-    b.onclick = () => toast(`「${it.text || it.title}」：Word 占位功能`);
+    b.onclick = () => toast(tt("toast.stub", { name: label || b.title }));
     b.style.opacity = ".65";
   } else if (it.viewMode) {
     b.dataset.viewmode = it.viewMode;
@@ -328,8 +333,8 @@ function renderRibbonBody() {
         const c = document.createElement("div");
         c.className = "style-card"; // 不再默认选中"正文"（常驻橙框观感差）
         c.dataset.styleid = s.id;
-        c.title = s.title || s.name;
-        c.innerHTML = `<span class="${s.cls}">AaBbCc</span><span class="sc-name">${s.name}</span>`;
+        c.title = tt(s.title) || tt(s.name);
+        c.innerHTML = `<span class="${s.cls}">AaBbCc</span><span class="sc-name">${tt(s.name)}</span>`;
         c.onclick = () => {
           document.querySelectorAll(".style-card").forEach((x) => x.classList.remove("on"));
           c.classList.add("on");
@@ -339,7 +344,7 @@ function renderRibbonBody() {
       }
       const nav = document.createElement("div");
       nav.className = "styles-nav";
-      nav.innerHTML = `<button class="st-up" title="上一行">▲</button><button class="st-down" title="下一行">▼</button>`;
+      nav.innerHTML = `<button class="st-up" title="${tt("rib.styles.prevRow")}">▲</button><button class="st-down" title="${tt("rib.styles.nextRow")}">▼</button>`;
       // 样式库滚动（上一行/下一行）
       const scrollStyles = (dir) => {
         const box = nav.closest(".styles-box");
@@ -350,9 +355,9 @@ function renderRibbonBody() {
       nav.querySelector(".st-down").onclick = () => scrollStyles(1);
       const cs = document.createElement("div");
       cs.className = "change-style";
-      cs.title = "更改样式";
-      cs.innerHTML = `<span class="cs-glyph">Aa</span><span class="cs-text">更改样式</span>`;
-      cs.onclick = () => toast("更改样式：Word 样式集（占位）");
+      cs.title = tt("rib.changeStyles");
+      cs.innerHTML = `<span class="cs-glyph">Aa</span><span class="cs-text">${tt("rib.changeStyles")}</span>`;
+      cs.onclick = () => toast(tt("toast.changeStylesStub"));
       box.appendChild(row);
       box.appendChild(nav);
       box.appendChild(cs);
@@ -361,7 +366,7 @@ function renderRibbonBody() {
     gd.appendChild(content);
     const name = document.createElement("div");
     name.className = "rgroup-name";
-    name.textContent = g.name;
+    name.textContent = tt(g.name);
     gd.appendChild(name);
     bodyEl.appendChild(gd);
   }
@@ -390,8 +395,8 @@ function togglePinned(p) {
   pin = pin.includes(p) ? pin.filter((x) => x !== p) : [p, ...pin].slice(0, 6);
   localStorage.setItem("wdt-pinned", JSON.stringify(pin));
 }
-const PIN_SVG_ON = `<svg viewBox="0 0 16 16" class="pin on" title="取消固定"><path d="M9.5 1l5.5 5.5-2 2-1-1-3.2 3.2.3 2.8-1.3 1.3-2.4-2.4L2 15l-.9-.9 3.6-3.4L2.3 8.3l1.3-1.3 2.8.3L9.6 4l-1-1z" fill="#e8963d"/></svg>`;
-const PIN_SVG_OFF = `<svg viewBox="0 0 16 16" class="pin" title="固定"><path d="M9.5 1l5.5 5.5-2 2-1-1-3.2 3.2.3 2.8-1.3 1.3-2.4-2.4L2 15l-.9-.9 3.6-3.4L2.3 8.3l1.3-1.3 2.8.3L9.6 4l-1-1z" fill="#c3cfdd"/></svg>`;
+const PIN_SVG_ON = `<svg viewBox="0 0 16 16" class="pin on" title="${tt("bs.start.unpin")}"><path d="M9.5 1l5.5 5.5-2 2-1-1-3.2 3.2.3 2.8-1.3 1.3-2.4-2.4L2 15l-.9-.9 3.6-3.4L2.3 8.3l1.3-1.3 2.8.3L9.6 4l-1-1z" fill="#e8963d"/></svg>`;
+const PIN_SVG_OFF = `<svg viewBox="0 0 16 16" class="pin" title="${tt("bs.start.pin")}"><path d="M9.5 1l5.5 5.5-2 2-1-1-3.2 3.2.3 2.8-1.3 1.3-2.4-2.4L2 15l-.9-.9 3.6-3.4L2.3 8.3l1.3-1.3 2.8.3L9.6 4l-1-1z" fill="#c3cfdd"/></svg>`;
 
 function fileRow(p, isPinned) {
   const pin = `<span class="bs-pin" data-pinned="${isPinned ? 1 : 0}" data-path="${p.replace(/"/g, "&quot;")}">${isPinned ? PIN_SVG_ON : PIN_SVG_OFF}</span>`;
@@ -403,17 +408,17 @@ function startPageBody() {
   const recents = getRecents().filter((p) => !pinned.includes(p));
   return `<div class="bs-quick-new" id="bs-quick-new">
       <svg viewBox="0 0 24 24"><path d="M6 2h9l4 4v16H6z" fill="#fff" stroke="#7f9fc4" stroke-width="1.6"/><path d="M11 10v6M8 13h6" stroke="#2f74c4" stroke-width="2"/></svg>
-      <div><div class="bf-name">新建空白文档</div><div class="bf-path">立即开始创作</div></div>
+      <div><div class="bf-name">${tt("bs.start.quickNew")}</div><div class="bf-path">${tt("bs.start.quickNewSub")}</div></div>
     </div>
-    <div class="bs-section" style="margin-top:18px">已固定</div>
-    ${pinned.length ? pinned.map((p) => fileRow(p, true)).join("") : `<div class="bs-hint">固定的文档会出现在这里（悬停文件点图钉固定）。</div>`}
-    <div class="bs-section" style="margin-top:16px">最近</div>
-    ${recents.length ? recents.map((p) => fileRow(p, false)).join("") : `<div class="bs-hint">最近打开的文档会出现在这里。</div>`}`;
+    <div class="bs-section" style="margin-top:18px">${tt("bs.start.pinned")}</div>
+    ${pinned.length ? pinned.map((p) => fileRow(p, true)).join("") : `<div class="bs-hint">${tt("bs.start.pinnedHint")}</div>`}
+    <div class="bs-section" style="margin-top:16px">${tt("bs.start.recent")}</div>
+    ${recents.length ? recents.map((p) => fileRow(p, false)).join("") : `<div class="bs-hint">${tt("bs.start.recentHint")}</div>`}`;
 }
 
 function wireStartPage() {
   const qn = document.getElementById("bs-quick-new");
-  if (qn) qn.onclick = () => { setDoc("", null); setDocOpen(true); hideBackstage(); toast("已新建"); };
+  if (qn) qn.onclick = () => { setDoc("", null); setDocOpen(true); hideBackstage(); toast(tt("toast.created")); };
   bsBody.querySelectorAll(".bs-file").forEach((f) => {
     f.onclick = (e) => {
       if (e.target.closest(".bs-pin")) return; // 图钉单独处理
@@ -430,48 +435,100 @@ function wireStartPage() {
 }
 
 const BS = {
-  start: { title: "开始", body: "" },
-  info: { title: "信息", body: "" },
+  start: { title: "bs.start.title", body: "" },
+  info: { title: "bs.info.title", body: "" },
   new: {
-    title: "新建",
+    title: "bs.new.title",
     body: `<div class="bs-new-wrap">
       <div class="bs-new-left">
-        <div class="bs-section">可用模板</div>
+        <div class="bs-section">${tt("bs.new.availTemplates")}</div>
         <div class="bs-cards" id="bs-new-cards">
-          <div class="bs-card sel" data-tpl="blank"><div class="bc-ico"></div><div class="bc-name">空白文档</div></div>
-          <div class="bs-card" data-tpl="blog"><div class="bc-ico"></div><div class="bc-name">博客文章</div></div>
-          <div class="bs-card" data-tpl="sample"><div class="bc-ico"></div><div class="bc-name">示例模板</div></div>
+          <div class="bs-card sel" data-tpl="blank"><div class="bc-ico"></div><div class="bc-name">${tt("bs.new.blank")}</div></div>
+          <div class="bs-card" data-tpl="blog"><div class="bc-ico"></div><div class="bc-name">${tt("bs.new.blog")}</div></div>
+          <div class="bs-card" data-tpl="sample"><div class="bc-ico"></div><div class="bc-name">${tt("bs.new.sample")}</div></div>
         </div>
-        <div class="bs-hint">提示：可直接把 .md 文件拖进窗口打开。</div>
+        <div class="bs-hint">${tt("bs.new.dragHint")}</div>
       </div>
       <div class="bs-new-right">
-        <div class="bs-section">空白文档</div>
+        <div class="bs-section">${tt("bs.new.blank")}</div>
         <div class="bs-preview"></div>
-        <button class="bs-create">创建</button>
+        <button class="bs-create">${tt("bs.new.create")}</button>
       </div>
     </div>`,
   },
   open: {
-    title: "打开",
-    body: `<div class="bs-cards"><div class="bs-card" id="bs-open-file" style="width:150px"><div class="bc-ico"></div><div class="bc-name">浏览…</div></div></div>
-      <div class="bs-hint">支持 .md / .markdown / .txt；也可以直接拖文件进窗口。</div>`,
+    title: "bs.open.title",
+    body: `<div class="bs-cards"><div class="bs-card" id="bs-open-file" style="width:150px"><div class="bc-ico"></div><div class="bc-name">${tt("bs.open.browse")}</div></div></div>
+      <div class="bs-hint">${tt("bs.open.hint")}</div>`,
   },
-  save: { title: "保存", body: `<div class="bs-hint">把当前文档保存到原文件。</div>` },
-  saveAs: { title: "另存为", body: `<div class="bs-hint">选择位置与文件名（.md 或 .txt）。</div>` },
-  print: { title: "打印", body: `<div class="bs-hint">打印当前文档（调起系统打印）。</div>` },
-  export: { title: "导出", body: `<div class="bs-cards">
-      <div class="bs-card" id="bs-exp-pdf" style="width:150px"><div class="bc-ico"></div><div class="bc-name">导出 PDF</div></div>
-      <div class="bs-card" id="bs-exp-html" style="width:150px"><div class="bc-ico"></div><div class="bc-name">导出 HTML</div></div>
-      <div class="bs-card" id="bs-exp-md" style="width:150px"><div class="bc-ico"></div><div class="bc-name">导出 Markdown</div></div>
+  save: { title: "bs.save.title", body: `<div class="bs-hint">${tt("bs.save.hint")}</div>` },
+  saveAs: { title: "bs.saveAs.title", body: `<div class="bs-hint">${tt("bs.saveAs.hint")}</div>` },
+  print: { title: "bs.print.title", body: `<div class="bs-hint">${tt("bs.print.hint")}</div>` },
+  export: { title: "bs.export.title", body: `<div class="bs-cards">
+      <div class="bs-card" id="bs-exp-pdf" style="width:150px"><div class="bc-ico"></div><div class="bc-name">${tt("bs.export.pdf")}</div></div>
+      <div class="bs-card" id="bs-exp-html" style="width:150px"><div class="bc-ico"></div><div class="bc-name">${tt("bs.export.html")}</div></div>
+      <div class="bs-card" id="bs-exp-md" style="width:150px"><div class="bc-ico"></div><div class="bc-name">${tt("bs.export.md")}</div></div>
     </div>
-    <div class="bs-hint">PDF 与 HTML 导出排版一致（A4、Word 2010 默认页边距）；另存为对话框里选"PDF 文档"也可直接存 PDF。</div>` },
-  options: { title: "选项", body: `<div class="bs-section">保存</div>
-      <label class="opt-row"><input type="checkbox" id="opt-infer-name"> 根据文件内容推断默认文件名<span class="opt-sub">本地开源模型 Qwen2.5-0.5B（llama.cpp CPU 运行，首次推断需启动本地服务），内容不出本机</span></label>
-      <div class="bs-hint">未保存的文档停止输入几秒后自动推断，首次"保存 / 另存为"时作默认文件名，对话框里随时可改；推断不可用自动回退"文档1"。模型已随软件内置（ai/ 目录）；若本机装有 Ollama 也会被优先复用。</div>
-      <button class="bs-create" id="opt-test" style="width:auto;padding:6px 20px">测试推断</button>
-      <div class="bs-hint" id="opt-test-out">用当前文档内容试一次，看模型返回什么名字。</div>` },
-  close: { title: "关闭", body: `<div class="bs-hint">关闭当前文档。</div>` },
+    <div class="bs-hint">${tt("bs.export.hint")}</div>` },
+  options: { title: "bs.options.title", body: `<div class="bs-section">${tt("bs.options.saveSection")}</div>
+      <label class="opt-row"><input type="checkbox" id="opt-infer-name"> ${tt("bs.options.inferName")}<span class="opt-sub">${tt("bs.options.inferNameSub")}</span></label>
+      <div class="bs-hint">${tt("bs.options.inferNameHint")}</div>
+      <button class="bs-create" id="opt-test" style="width:auto;padding:6px 20px">${tt("bs.options.testInfer")}</button>
+      <div class="bs-hint" id="opt-test-out">${tt("bs.options.testInferHint")}</div>
+      <div class="bs-section" style="margin-top:18px">${tt("bs.options.langSection")}</div>
+      <div class="lang-opts" id="opt-lang">
+        <label class="lang-row"><input type="radio" name="wdt-lang" value="zh-CN" id="lang-zh"><span class="lang-name">${tt("lang.zhCN")}</span><span class="lang-tag">简体中文</span></label>
+        <label class="lang-row"><input type="radio" name="wdt-lang" value="en-US" id="lang-en"><span class="lang-name">${tt("lang.enUS")}</span><span class="lang-tag">English (United States)</span></label>
+      </div>
+      <div class="bs-hint">${tt("bs.options.langHint")}</div>` },
+  close: { title: "bs.close.title", body: `<div class="bs-hint">${tt("bs.close.hint")}</div>` },
 };
+// BS[page].body 是模块加载时求值的一次性模板；切语言后按此重建（源模板里留 tt 占位）
+const BS_BODY_SRC = {
+  new: () => `<div class="bs-new-wrap">
+      <div class="bs-new-left">
+        <div class="bs-section">${tt("bs.new.availTemplates")}</div>
+        <div class="bs-cards" id="bs-new-cards">
+          <div class="bs-card sel" data-tpl="blank"><div class="bc-ico"></div><div class="bc-name">${tt("bs.new.blank")}</div></div>
+          <div class="bs-card" data-tpl="blog"><div class="bc-ico"></div><div class="bc-name">${tt("bs.new.blog")}</div></div>
+          <div class="bs-card" data-tpl="sample"><div class="bc-ico"></div><div class="bc-name">${tt("bs.new.sample")}</div></div>
+        </div>
+        <div class="bs-hint">${tt("bs.new.dragHint")}</div>
+      </div>
+      <div class="bs-new-right">
+        <div class="bs-section">${tt("bs.new.blank")}</div>
+        <div class="bs-preview"></div>
+        <button class="bs-create">${tt("bs.new.create")}</button>
+      </div>
+    </div>`,
+  open: () => `<div class="bs-cards"><div class="bs-card" id="bs-open-file" style="width:150px"><div class="bc-ico"></div><div class="bc-name">${tt("bs.open.browse")}</div></div></div>
+      <div class="bs-hint">${tt("bs.open.hint")}</div>`,
+  save: () => `<div class="bs-hint">${tt("bs.save.hint")}</div>`,
+  saveAs: () => `<div class="bs-hint">${tt("bs.saveAs.hint")}</div>`,
+  print: () => `<div class="bs-hint">${tt("bs.print.hint")}</div>`,
+  export: () => `<div class="bs-cards">
+      <div class="bs-card" id="bs-exp-pdf" style="width:150px"><div class="bc-ico"></div><div class="bc-name">${tt("bs.export.pdf")}</div></div>
+      <div class="bs-card" id="bs-exp-html" style="width:150px"><div class="bc-ico"></div><div class="bc-name">${tt("bs.export.html")}</div></div>
+      <div class="bs-card" id="bs-exp-md" style="width:150px"><div class="bc-ico"></div><div class="bc-name">${tt("bs.export.md")}</div></div>
+    </div>
+    <div class="bs-hint">${tt("bs.export.hint")}</div>`,
+  options: () => `<div class="bs-section">${tt("bs.options.saveSection")}</div>
+      <label class="opt-row"><input type="checkbox" id="opt-infer-name"> ${tt("bs.options.inferName")}<span class="opt-sub">${tt("bs.options.inferNameSub")}</span></label>
+      <div class="bs-hint">${tt("bs.options.inferNameHint")}</div>
+      <button class="bs-create" id="opt-test" style="width:auto;padding:6px 20px">${tt("bs.options.testInfer")}</button>
+      <div class="bs-hint" id="opt-test-out">${tt("bs.options.testInferHint")}</div>
+      <div class="bs-section" style="margin-top:18px">${tt("bs.options.langSection")}</div>
+      <div class="lang-opts" id="opt-lang">
+        <label class="lang-row"><input type="radio" name="wdt-lang" value="zh-CN" id="lang-zh"><span class="lang-name">${tt("lang.zhCN")}</span><span class="lang-tag">简体中文</span></label>
+        <label class="lang-row"><input type="radio" name="wdt-lang" value="en-US" id="lang-en"><span class="lang-name">${tt("lang.enUS")}</span><span class="lang-tag">English (United States)</span></label>
+      </div>
+      <div class="bs-hint">${tt("bs.options.langHint")}</div>`,
+  close: () => `<div class="bs-hint">${tt("bs.close.hint")}</div>`,
+};
+function rebuildBsBodies() {
+  for (const k of Object.keys(BS_BODY_SRC)) BS[k].body = BS_BODY_SRC[k]();
+}
+rebuildBsBodies();
 let bsPage = null;
 function showBackstage(page) {
   bsPage = page;
@@ -482,7 +539,7 @@ function showBackstage(page) {
   document.querySelectorAll(".bs-item").forEach((i) => i.classList.toggle("on", i.dataset.bs === page));
   // start = 最近文档页
   if (page === "start") {
-    bsTitle.textContent = "开始";
+    bsTitle.textContent = tt("bs.start.title");
     bsBody.innerHTML = startPageBody();
     wireStartPage();
     return;
@@ -493,14 +550,14 @@ function showBackstage(page) {
     const cjk = (md.match(/[一-鿿]/g) || []).length;
     const words = (md.replace(/[一-鿿]/g, " ").match(/[A-Za-z0-9_'-]+/g) || []).length;
     BS.info.body = `<table class="bs-info">
-      <tr><td>文件名</td><td>${filePath ? filePath.split(/[\\/]/).pop() : "文档1（未保存）"}</td></tr>
-      <tr><td>位置</td><td>${filePath || "—"}</td></tr>
-      <tr><td>字数</td><td>${cjk + words}</td></tr>
-      <tr><td>字符数</td><td>${md.length}</td></tr>
-      <tr><td>当前模式</td><td>${MODE_LABEL[mode]}</td></tr>
+      <tr><td>${tt("bs.info.fileName")}</td><td>${filePath ? filePath.split(/[\\/]/).pop() : tt("bs.info.unsaved", { name: tt("defaultDocName") })}</td></tr>
+      <tr><td>${tt("bs.info.location")}</td><td>${filePath || "—"}</td></tr>
+      <tr><td>${tt("bs.info.words")}</td><td>${cjk + words}</td></tr>
+      <tr><td>${tt("bs.info.chars")}</td><td>${md.length}</td></tr>
+      <tr><td>${tt("bs.info.mode")}</td><td>${MODE_LABEL[mode]}</td></tr>
     </table>`;
   }
-  bsTitle.textContent = BS[page] ? BS[page].title : page;
+  bsTitle.textContent = BS[page] ? tt(BS[page].title) : page;
   bsBody.innerHTML = BS[page] ? BS[page].body : "";
   // 页内动作
   document.querySelectorAll("#bs-new-cards .bs-card").forEach((c) => {
@@ -521,7 +578,7 @@ function showBackstage(page) {
     setDoc(seed, null);
     setDocOpen(true);
     hideBackstage();
-    toast("已新建");
+    toast(tt("toast.created"));
   };
   const openf = document.getElementById("bs-open-file");
   if (openf) openf.onclick = () => { openFile(); hideBackstage(); };
@@ -538,17 +595,27 @@ function showBackstage(page) {
     optChk.onchange = () => {
       localStorage.setItem("wdt-pref-infer-name", optChk.checked ? "1" : "0");
       if (optChk.checked) scheduleInfer(true);
-      toast(optChk.checked ? "已开启：推断默认文件名" : "已关闭：推断默认文件名");
+      toast(tt(optChk.checked ? "toast.inferOn" : "toast.inferOff"));
     };
     const testBtn = document.getElementById("opt-test");
     const testOut = document.getElementById("opt-test-out");
     if (testBtn) testBtn.onclick = async () => {
-      testOut.textContent = "推断中…（本地模型，首次较慢）";
+      testOut.textContent = tt("optTest.running");
       const md = currentMd();
       const r = await window.wdt.aiInfer(md.trim().slice(0, 1500));
-      testOut.textContent = r && r.name ? `当前文档推断结果：「${r.name}」` : `不可用：${(r && r.error) || "未知原因"}`;
+      testOut.textContent = r && r.name ? tt("optTest.result", { name: r.name }) : tt("optTest.fail", { err: (r && r.error) || "?" });
     };
   }
+  // 语言卡片：选中当前语言，点击即切换（存盘 + 广播，不 reload）
+  const langRadios = document.querySelectorAll('input[name="wdt-lang"]');
+  langRadios.forEach((r) => {
+    r.checked = r.value === getLang();
+    r.onchange = async () => {
+      if (!r.checked) return;
+      const res = await window.wdt.setConfig({ language: r.value });
+      if (res && res.error) toast(tt("toast.langFail", { err: res.error }));
+    };
+  });
 }
 function hideBackstage() {
   backstage.hidden = true;
@@ -568,19 +635,19 @@ img{max-width:100%}</style>
 }
 // 导出：PDF = 隐藏窗口 printToPDF；HTML = 渲染结果另存；MD = 源码另存
 async function exportAs(kind) {
-  const base = (filePath ? filePath.replace(/\.[^.]*$/, "") : (suggestedName || "文档1"));
+  const base = (filePath ? filePath.replace(/\.[^.]*$/, "") : (suggestedName || tt("defaultDocName")));
   if (kind === "md") { filePath = null; await saveAs(); return; }
   if (kind === "pdf") {
-    toast("正在生成 PDF…");
+    toast(tt("toast.generatingPdf"));
     const r = await window.wdt.exportPdf({ html: buildExportHtml(base), defaultName: base + ".pdf" });
-    if (r && r.error) toast("导出 PDF 失败：" + r.error);
-    else if (r && r.ok) toast("已导出 PDF：" + r.path.split(/[\\/]/).pop());
+    if (r && r.error) toast(tt("toast.exportPdfFail").replace("{err}", r.error));
+    else if (r && r.ok) toast(tt("toast.exportedPdf").replace("{name}", r.path.split(/[\\/]/).pop()));
     return;
   }
   const p = await window.wdt.saveDialog(base + ".html");
   if (!p) return;
   const r = await window.wdt.writeFile(p.endsWith(".html") ? p : p + ".html", buildExportHtml(base));
-  if (r.error) toast("导出失败：" + r.error); else toast("已导出 HTML");
+  if (r.error) toast(tt("toast.exportFail").replace("{err}", r.error)); else toast(tt("toast.exportedHtml"));
 }
 document.getElementById("file-tab").onclick = () => (backstage.hidden ? showBackstage("start") : hideBackstage());
 document.getElementById("bs-back").onclick = () => hideBackstage();
@@ -615,7 +682,7 @@ function applyRibbonLayout() {
     cb = document.createElement("button");
     cb.id = "ribbon-expand";
     cb.className = "ribbon-collapse-btn";
-    cb.innerHTML = `<span class="cc-glyph">A</span>样式 ▾`;
+    cb.innerHTML = `<span class="cc-glyph">A</span>${tt("ribbon.expandBtn")}`;
     cb.onclick = () => { ribbonCollapsed = false; applyRibbonLayout(); };
     bodyEl.appendChild(cb);
   } else if (!ribbonCollapsed && cb) {
@@ -623,7 +690,7 @@ function applyRibbonLayout() {
   }
 }
 window.addEventListener("resize", applyRibbonLayout);
-document.getElementById("btn-help").onclick = () => toast("wdt —— Word 2010 皮肤 + Typora Markdown 内核");
+document.getElementById("btn-help").onclick = () => toast(tt("toast.about"));
 
 // 自绘标题行：窗口控制 + 快速访问工具栏
 document.getElementById("wc-min").onclick = () => window.wdt.winMin();
@@ -951,7 +1018,7 @@ function cmReplaceAllTo(view, md) {
 function cmReplaceAll(md) { cmReplaceAllTo(cmView, md); }
 
 // ============ 模式切换 ============
-const MODE_LABEL = { presentation: "表现模式", hybrid: "半表现模式", source: "代码模式" };
+const MODE_LABEL = { presentation: tt("mode.presentation"), hybrid: tt("mode.hybrid"), source: tt("mode.source") };
 function currentMd() {
   if (mode === "presentation") return milkReady ? milkdownToMd(milkEditor) : docSeed;
   if (mode === "hybrid") return hybridView.state.doc.toString();
@@ -977,7 +1044,7 @@ function switchMode(next) {
   }
   syncModeUi();
   updateCount();
-  toast(`已切换至：${MODE_LABEL[next] || next}`);
+  toast(tt("toast.switched").replace("{mode}", MODE_LABEL[next] || next));
 }
 
 function syncModeUi() {
@@ -1042,7 +1109,7 @@ async function doPaste() {
       if (mode === "presentation") execMilk("undo");
       else cmUndo(activeCmView());
       insertMd(md);
-      toast(fmt === "advanced" ? "已粘贴为保留源格式" : "已粘贴为纯文本格式");
+      toast(fmt === "advanced" ? tt("toast.pastedAdvanced") : tt("toast.pastedPlain"));
     },
   }), 60);
 }
@@ -1081,18 +1148,18 @@ function execMilk(cmd) {
       const r = anchor ? anchor.getBoundingClientRect() : { left: 80, bottom: 60 };
       showTablePicker(r.left, r.bottom + 6, (rows, cols) => {
         call(insertTableCommand, { row: rows, col: cols });
-        toast(`已插入 ${rows}×${cols} 表格`);
+        toast(tt("toast.insertedTable").replace('{r}', rows).replace('{c}', cols));
       });
       break;
     }
     case "link": {
-      const url = prompt("链接地址：", "https://");
+      const url = prompt(tt("prompt.link"), "https://");
       if (url) call(toggleLinkCommand, { href: url });
       break;
     }
     case "image": {
-      const url = prompt("图片地址：", "");
-      if (url) call(insertImageCommand, { src: url, alt: "图片" });
+      const url = prompt(tt("prompt.image"), "");
+      if (url) call(insertImageCommand, { src: url, alt: tt("md.imageAlt") });
       break;
     }
     case "toc": {
@@ -1110,7 +1177,7 @@ function execMilk(cmd) {
       if (v) pmRedo(v.state, v.dispatch);
       break;
     }
-    default: toast(`命令 ${cmd} 待实现`);
+    default: toast(tt("toast.cmdPending").replace("{cmd}", cmd));
   }
   milkView()?.focus();
 }
@@ -1181,12 +1248,12 @@ function execCm(cmd) {
         const line = v.state.doc.lineAt(cur.head);
         v.dispatch({ changes: { from: line.from, to: line.to, insert: line.text + tableMd(rows, cols) } });
         v.focus();
-        toast(`已插入 ${rows}×${cols} 表格`);
+        toast(tt("toast.insertedTable").replace('{r}', rows).replace('{c}', cols));
       });
       break;
     }
     case "link": {
-      const url = prompt("链接地址：", "https://");
+      const url = prompt(tt("prompt.link"), "https://");
       if (url) {
         const text = sel.empty ? url : state.sliceDoc(sel.from, sel.to);
         view.dispatch({ changes: { from: sel.from, to: sel.to, insert: `[${text}](${url})` } });
@@ -1194,14 +1261,14 @@ function execCm(cmd) {
       break;
     }
     case "image": {
-      const url = prompt("图片地址：", "");
+      const url = prompt(tt("prompt.image"), "");
       if (url) view.dispatch({ changes: { from: line.from, insert: `![图片](${url})\n` } });
       break;
     }
     case "toc": view.dispatch({ changes: { from: line.from, insert: "[TOC]\n\n" } }); break;
     case "undo": cmUndo(view); break;
     case "redo": cmRedo(view); break;
-    default: toast(`命令 ${cmd} 待实现`);
+    default: toast(tt("toast.cmdPending").replace("{cmd}", cmd));
   }
   view.focus();
 }
@@ -1219,7 +1286,7 @@ window.addEventListener("keydown", (e) => {
   else if (ctrl && shift && k === "l") cmd = "bulletList";                       // Ctrl+Shift+L
   else if (ctrl && !shift && k === "b") cmd = "bold";
   else if (ctrl && !shift && k === "i") cmd = "italic";
-  else if (ctrl && !shift && k === "u") { toast("Markdown 扩展下划线占位"); return; }
+  else if (ctrl && !shift && k === "u") { toast(tt("toast.underlineStub")); return; }
   else if (ctrl && !shift && k === "k") cmd = "link";
   else if (ctrl && e.key === "Enter") cmd = "hr";                                // Ctrl+Enter 分页->水平线
   else if (ctrl && k === "s") { shift ? saveAs() : save(); return; }             // Ctrl+S / Ctrl+Shift+S
@@ -1227,8 +1294,8 @@ window.addEventListener("keydown", (e) => {
   else if (ctrl && k === "o") { openFile(); return; }
   else if (ctrl && (k === "z") && !shift) { exec("undo"); }
   else if ((ctrl && k === "y") || (ctrl && shift && k === "z")) exec("redo");
-  else if (ctrl && k === "f") { toast("查找功能占位"); return; }
-  else if (ctrl && k === "h") { toast("替换功能占位"); return; }
+  else if (ctrl && k === "f") { toast(tt("toast.findStub")); return; }
+  else if (ctrl && k === "h") { toast(tt("toast.replaceStub")); return; }
   else stop = false;
   if (cmd) { e.preventDefault(); exec(cmd); }
   else if (stop) e.preventDefault();
@@ -1253,9 +1320,9 @@ function showPasteOpt(x, y, action) {
 function hidePasteOpt() { po.hidden = true; poMenu.hidden = true; poAction = null; }
 poBtn.addEventListener("click", () => { poMenu.hidden = !poMenu.hidden; clearTimeout(poTimer); });
 document.getElementById("po-adv").addEventListener("click", () => { poAction?.apply("advanced"); hidePasteOpt(); });
-document.getElementById("po-merge").addEventListener("click", () => { toast("合并格式：保持目标段落格式"); hidePasteOpt(); });
+document.getElementById("po-merge").addEventListener("click", () => { toast(tt("toast.mergeFormat")); hidePasteOpt(); });
 document.getElementById("po-md").addEventListener("click", () => { poAction?.apply("md"); hidePasteOpt(); });
-document.getElementById("po-default").addEventListener("click", () => { toast("设置默认粘贴：默认保留源格式"); hidePasteOpt(); });
+document.getElementById("po-default").addEventListener("click", () => { toast(tt("toast.defaultPaste")); hidePasteOpt(); });
 
 // 选区 md（跨模式）
 function selectionMd() {
@@ -1295,7 +1362,7 @@ document.addEventListener("copy", (e) => {
     apply: (fmt) => {
       if (fmt === "advanced") window.wdt.clipWrite(md, `<div>${mdit.render(md)}</div>`);
       else window.wdt.clipWrite(md, undefined);
-      toast(fmt === "advanced" ? "已复制为源格式" : "已复制为纯文本格式");
+      toast(fmt === "advanced" ? tt("toast.copiedAdvanced") : tt("toast.copiedPlain"));
     },
   }), 60);
 });
@@ -1335,7 +1402,7 @@ function markDirty() {
   if (!dirty) { dirty = true; refreshTitle(); }
 }
 function refreshTitle() {
-  const name = filePath ? filePath.split(/[\\/]/).pop() : "文档1";
+  const name = filePath ? filePath.split(/[\\/]/).pop() : tt("defaultDocName");
   document.getElementById("title-text").textContent = `${name} - wdt`;
   window.wdt.setTitle(`${name} - wdt`);
 }
@@ -1343,7 +1410,7 @@ function updateCount() {
   const md = currentMd();
   const cjk = (md.match(/[\u4e00-\u9fa5]/g) || []).length;
   const words = (md.replace(/[\u4e00-\u9fa5]/g, " ").match(/[A-Za-z0-9_'-]+/g) || []).length;
-  document.getElementById("st-count").textContent = `字数: ${cjk + words}`;
+  document.getElementById("st-count").textContent = tt("st.count").replace("{n}", cjk + words);
   scheduleInfer();
 }
 
@@ -1374,11 +1441,11 @@ async function openFile(p) {
   if (!p) p = await window.wdt.openDialog();
   if (!p) return;
   const r = await window.wdt.readFile(p);
-  if (r.error) { toast("打开失败：" + r.error); return; }
+  if (r.error) { toast(tt("toast.openFail").replace("{err}", r.error)); return; }
   setDoc(r.content, p);
   setDocOpen(true);
   pushRecent(p);
-  toast("已打开 " + p.split(/[\\/]/).pop());
+  toast(tt("toast.opened").replace("{name}", p.split(/[\\/]/).pop()));
 }
 // 统一设置文档内容（三模式同步）
 function setDoc(md, path) {
@@ -1409,11 +1476,11 @@ function confirmCloseDlg() {
       dlg.id = "quit-dlg";
       dlg.innerHTML = `<div class="qd-box">
         <div class="qd-title">wdt</div>
-        <div class="qd-body">是否将更改保存到 文档？</div>
+        <div class="qd-body">${tt("dlg.quit.body")}</div>
         <div class="qd-btns">
-          <button id="qd-cancel">取消</button>
-          <button id="qd-nosave">不保存(N)</button>
-          <button id="qd-save">保存(S)</button>
+          <button id="qd-cancel">${tt("dlg.quit.cancel")}</button>
+          <button id="qd-nosave">${tt("dlg.quit.nosave")}</button>
+          <button id="qd-save">${tt("dlg.quit.save")}</button>
         </div>
       </div>`;
       document.body.appendChild(dlg);
@@ -1436,27 +1503,27 @@ async function closeDoc() {
   setDoc("", null);
   setDocOpen(false);
   hideBackstage();
-  toast("已关闭");
+  toast(tt("toast.closed"));
 }
 async function save() {
   if (!filePath) return saveAs();
   const r = await window.wdt.writeFile(filePath, currentMd());
-  if (r.error) { toast("保存失败：" + r.error); return; }
-  dirty = false; refreshTitle(); toast("已保存");
+  if (r.error) { toast(tt("toast.saveFail").replace("{err}", r.error)); return; }
+  dirty = false; refreshTitle(); toast(tt("toast.saved"));
 }
 async function saveAs() {
   // 未保存过：默认名 = 本地模型推断的（可改）；再兜底"文档1"
   const defName = filePath ? filePath.split(/[\\/]/).pop()
-    : (suggestedName ? suggestedName.replace(/[\\/:*?"<>|]/g, "") + ".md" : "文档1.md");
+    : (suggestedName ? suggestedName.replace(/[\\/:*?"<>|]/g, "") + ".md" : tt("defaultMdName"));
   const p = await window.wdt.saveDialog(defName);
   if (!p) return;
   // 选了 PDF 文档类型 = 直接把当前文档打印成 PDF（Word 行为：不切换当前文档）
   if (p.toLowerCase().endsWith(".pdf")) {
-    toast("正在生成 PDF…");
-    const base = filePath ? filePath.replace(/\.[^.]*$/, "") : (suggestedName || "文档1");
+    toast(tt("toast.generatingPdf"));
+    const base = filePath ? filePath.replace(/\.[^.]*$/, "") : (suggestedName || tt("defaultDocName"));
     const r = await window.wdt.exportPdf({ html: buildExportHtml(base), outPath: p });
-    if (r && r.error) toast("导出 PDF 失败：" + r.error);
-    else if (r && r.ok) toast("已另存为 PDF：" + r.path.split(/[\\/]/).pop());
+    if (r && r.error) toast(tt("toast.exportPdfFail").replace("{err}", r.error));
+    else if (r && r.ok) toast(tt("toast.savedAsPdf").replace("{name}", r.path.split(/[\\/]/).pop()));
     return;
   }
   filePath = p;
@@ -1537,7 +1604,7 @@ function tpPaint() {
   tpGridEl.querySelectorAll(".tp-cell").forEach((el) => {
     el.classList.toggle("sel", Number(el.dataset.r) < tpR && Number(el.dataset.c) < tpC);
   });
-  tpLabelEl.textContent = `${tpR}×${tpC} 表格`;
+  tpLabelEl.textContent = tt("table.label").replace("{r}", tpR).replace("{c}", tpC);
 }
 function showTablePicker(x, y, cb) {
   tpCallback = cb; tpDragging = false;
@@ -1588,7 +1655,7 @@ document.addEventListener("pointerdown", (e) => {
   if (!tablePicker.hidden && !e.target.closest("#table-picker")) hideTablePicker();
 }, true);
 function tableMd(rows, cols) {
-  const head = "| " + Array.from({ length: cols }, (_, i) => `列${i + 1}`).join(" | ") + " |";
+  const head = "| " + Array.from({ length: cols }, (_, i) => tt("md.colName").replace("{n}", i + 1)).join(" | ") + " |";
   const sep = "| " + Array.from({ length: cols }, () => "---").join(" | ") + " |";
   const body = Array.from({ length: Math.max(0, rows - 1) }, () =>
     "| " + Array.from({ length: cols }, () => "").join(" | ") + " |");
@@ -1723,8 +1790,74 @@ window.__diag = {
   hybridMd: () => { try { return hybridView.state.doc.toString().slice(0, 40); } catch (e) { return "ERR " + e.message; } },
 };
 
-renderRibbonTabs();
-renderRibbonBody();
+// ============ 界面语言：冷启动读主进程配置；lang:changed 广播时整体重绘（不 reload） ============
+function applyStaticI18n() {
+  const L = getLang();
+  document.documentElement.lang = L;
+  const set = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = tt(key); };
+  const tip = (id, key) => { const el = document.getElementById(id); if (el) el.title = tt(key); };
+  set("file-tab", "ui.fileTab");
+  tip("btn-collapse", "ui.collapseRibbon");
+  tip("btn-help", "ui.help");
+  tip("qat-save", "qat.save.tip");
+  tip("qat-undo", "qat.undo.tip");
+  tip("qat-redo", "qat.redo.tip");
+  tip("wc-min", "win.min");
+  tip("wc-max", "win.max");
+  tip("wc-close", "win.close");
+  tip("qat-more", "qat.custom.tip");
+  set("st-page", "st.page");
+  tip("st-proof", "st.proofLang");
+  const proof = document.getElementById("st-proof");
+  if (proof) proof.lastChild.textContent = " " + tt("st.proofLang");
+  set("st-ins", "st.insert");
+  tip("zoom-out", "st.zoomOut");
+  tip("zoom-in", "st.zoomIn");
+  document.querySelectorAll(".st-vbtn").forEach((b) => {
+    b.title = tt("st.vbtn." + b.dataset.mode + ".tip");
+  });
+  // Backstage 侧栏
+  document.querySelectorAll(".bs-item[data-bs]").forEach((el) => {
+    const key = "bs.nav." + el.dataset.bs;
+    const svg = el.querySelector("svg");
+    el.textContent = tt(key);
+    if (svg) el.insertBefore(svg, el.firstChild);
+  });
+  const back = document.getElementById("bs-back");
+  if (back) {
+    const svg = back.querySelector("svg");
+    back.textContent = tt("bs.back");
+    if (svg) back.insertBefore(svg, back.firstChild);
+  }
+}
+
+async function initLang() {
+  let lang = "zh-CN";
+  try {
+    const cfg = await window.wdt.getConfig();
+    if (cfg && cfg.language) lang = cfg.language;
+  } catch { /* 主进程无配置时保持默认 */ }
+  setLang(lang);
+  rebuildBsBodies();
+  applyStaticI18n();
+  renderRibbonTabs();
+  renderRibbonBody();
+  updateCount();
+  if (bsPage) showBackstage(bsPage); // Backstage 开着时同步重绘
+}
+
+window.wdt.onLangChanged((lang) => {
+  setLang(lang);
+  rebuildBsBodies();
+  applyStaticI18n();
+  renderRibbonTabs();
+  renderRibbonBody();
+  updateCount();
+  if (bsPage) showBackstage(bsPage);
+  refreshTitle();
+});
+
+initLang();
 setDocOpen(true); // 启动即空白文档（纸面可见）
 milkHost.classList.add("show");
 initMilkdown().then(() => { refreshTitle(); updateCount(); });

@@ -5,6 +5,8 @@ const { app, BrowserWindow, Menu, dialog, ipcMain, clipboard } = require('electr
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const i18n = require('./locales');
+const { t: tt, setLang: mainSetLang } = i18n; // tt = 主进程侧翻译（避免与局部变量撞名）
 
 let win = null;
 let splash = null;
@@ -41,7 +43,8 @@ function createSplash() {
     backgroundColor: '#ffffff',
     webPreferences: { contextIsolation: true },
   });
-  splash.loadFile(path.join(__dirname, 'renderer', 'splash.html'));
+  // 启动画面没有 preload，语言经 URL query 传入（splash 内联脚本自行换字）
+  splash.loadFile(path.join(__dirname, 'renderer', 'splash.html'), { query: { lang: i18n.getLang() } });
 }
 
 // ---------- 主窗口（frame:false，标题行由渲染层自绘——Word 2010 标题融进 Ribbon） ----------
@@ -54,7 +57,7 @@ function createWindow() {
     frame: false,
     icon: path.join(__dirname, 'icon.ico'), // 四格蓝图标（与启动画面一致）
     backgroundColor: '#dce6f4',
-    title: '文档1 - wdt',
+    title: tt('app.title.default'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -89,24 +92,24 @@ function createWindow() {
 // ---------- 文件与剪贴板 IPC ----------
 ipcMain.handle('dialog:open', async () => {
   const r = await dialog.showOpenDialog(win, {
-    title: '打开',
+    title: tt('dlg.open.title'),
     properties: ['openFile'],
     filters: [
-      { name: 'Markdown 文档', extensions: ['md', 'markdown', 'txt'] },
-      { name: '所有文件', extensions: ['*'] },
+      { name: tt('dlg.filter.md'), extensions: ['md', 'markdown', 'txt'] },
+      { name: tt('dlg.filter.all'), extensions: ['*'] },
     ],
   });
   return r.canceled ? null : r.filePaths[0];
 });
 ipcMain.handle('dialog:save', async (e, defaultName) => {
   const r = await dialog.showSaveDialog(win, {
-    title: '另存为',
-    defaultPath: defaultName || '文档1.md',
+    title: tt('dlg.save.title'),
+    defaultPath: defaultName || tt('defaultMdName'),
     filters: [
-      { name: 'Markdown (*.md)', extensions: ['md'] },
-      { name: '文本文件 (*.txt)', extensions: ['txt'] },
-      { name: 'PDF 文档 (*.pdf)', extensions: ['pdf'] }, // 选它 = 直接出 PDF（渲染层分流）
-      { name: '所有文件', extensions: ['*'] },
+      { name: tt('dlg.filter.markdown'), extensions: ['md'] },
+      { name: tt('dlg.filter.txt'), extensions: ['txt'] },
+      { name: tt('dlg.filter.pdf'), extensions: ['pdf'] }, // 选它 = 直接出 PDF（渲染层分流）
+      { name: tt('dlg.filter.all'), extensions: ['*'] },
     ],
   });
   if (r.canceled) return null;
@@ -132,9 +135,9 @@ ipcMain.handle('export:pdf', async (e, { html, defaultName, outPath }) => {
     let p = outPath || null;
     if (!p) {
       const r = await dialog.showSaveDialog(win, {
-        title: '导出 PDF',
-        defaultPath: defaultName || '文档1.pdf',
-        filters: [{ name: 'PDF 文档 (*.pdf)', extensions: ['pdf'] }],
+        title: tt('dlg.pdf.title'),
+        defaultPath: defaultName || tt('defaultPdfName'),
+        filters: [{ name: tt('dlg.filter.pdf'), extensions: ['pdf'] }],
       });
       if (r.canceled) return { canceled: true };
       p = r.filePath.toLowerCase().endsWith('.pdf') ? r.filePath : r.filePath + '.pdf';
@@ -218,8 +221,8 @@ function runInfer(cmd, args, text) {
 ipcMain.handle('app:setTitle', (e, t) => { if (win) win.setTitle(t); });
 ipcMain.handle('app:confirmUnsaved', async () => {
   const r = await dialog.showMessageBox(win, {
-    type: 'warning', buttons: ['保存(S)', '不保存(N)', '取消'], defaultId: 0, cancelId: 2,
-    message: '是否将更改保存到 文档1？',
+    type: 'warning', buttons: [tt('dlg.quit.save'), tt('dlg.quit.nosave'), tt('dlg.quit.cancel')], defaultId: 0, cancelId: 2,
+    message: tt('mainUnsaved'),
   });
   return r.response;
 });
@@ -240,7 +243,33 @@ ipcMain.handle('clip:read', () => ({
   html: clipboard.readHTML(),
 }));
 
+// ---------- 配置持久化（界面语言；写法参考 npj 的 config:get/config:set） ----------
+const configPath = () => path.join(app.getPath('userData'), 'wdt-config.json');
+let appConfig = { language: 'zh-CN' };
+function loadConfig() {
+  try { Object.assign(appConfig, JSON.parse(fs.readFileSync(configPath(), 'utf8'))); } catch { /* 首次启动无配置文件 */ }
+  if (!i18n.LANGS.includes(appConfig.language)) appConfig.language = 'zh-CN';
+  return appConfig;
+}
+function saveConfig() {
+  try { fs.writeFileSync(configPath(), JSON.stringify(appConfig, null, 2)); return { ok: true }; }
+  catch (err) { return { error: err.message }; }
+}
+ipcMain.handle('config:get', () => ({ ...appConfig }));
+ipcMain.handle('config:set', (e, patch) => {
+  Object.assign(appConfig, patch || {});
+  const r = saveConfig();
+  const lang = patch && patch.language;
+  if (i18n.LANGS.includes(lang) && lang !== i18n.getLang()) {
+    mainSetLang(lang); // 主进程对话框/窗口标题即时跟随
+    if (win && !win.isDestroyed()) win.webContents.send('lang:changed', lang); // 渲染层收到后重绘（不 reload）
+  }
+  return r;
+});
+
 app.whenReady().then(() => {
+  loadConfig();          // 冷启动先读盘，启动画面与主窗口标题拿到正确语言
+  mainSetLang(appConfig.language);
   createSplash();
   createWindow();
 });

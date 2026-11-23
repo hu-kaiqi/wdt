@@ -71,5 +71,16 @@
     <span>wdt</span>
   </div>
   <div class="copyright">© 2026 wdt. Markdown editor.</div>
+  <script>
+    // 语言跟随主进程配置：启动画面无 preload，语言由主进程经 URL query 传入
+    (function () {
+      var lang = new URLSearchParams(location.search).get('lang');
+      if (lang === 'en-US') {
+        document.documentElement.lang = 'en-US';
+        document.title = 'Starting';
+        document.querySelector('.starting').textContent = 'Starting';
+      }
+    })();
+  </script>
 </body>
 </html>
