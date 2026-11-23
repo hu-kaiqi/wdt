@@ -1,0 +1,17 @@
+node_modules/
+release/
+dist-app/
+renderer/bundle.js
+renderer/bundle.css
+# 引导程序编译产物（源码 launcher.cpp / icon.rc 在仓）
+*.exe
+*.res
+*.log
+# 未混淆源码的历史快照（开源后版本走 git 提交链）
+backup/
+# 本地推理运行时大件（llama.cpp + GGUF 模型，重建表见 ai/README.md）
+ai/llamacpp/
+ai/models/
+__pycache__/
+*.pyc
+.DS_Store

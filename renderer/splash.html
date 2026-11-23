@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>启动</title>
+  <style>
+    /* Word 2010 启动画面（对照用户截图 starting page.png 自绘）：
+       白底 + 右下橙黄波浪绸带 + 大字 Microsoft Word 2010 + Starting. + 左下 Office 四格图标 + 版权 + 右上窗口小按钮 */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid #b7bcc4;
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      animation: fadein .28s ease-out;
+    }
+    @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+    /* 右上窗口控制（起装饰对齐原版作用） */
+    .top-controls { position: absolute; right: 8px; top: 4px; display: flex; gap: 8px; color: #a08250; font-size: 11px; user-select: none; }
+    .top-controls span { cursor: default; }
+
+    /* 右下橙黄波浪绸带（Office 2010 标志视觉，多层弧形光带近似） */
+    .ribbon-wave { position: absolute; right: 0; bottom: 0; width: 64%; height: 60%; overflow: hidden; }
+    .ribbon-wave i { position: absolute; border-radius: 50%; }
+    .w1 { right: -14%; bottom: -38%; width: 86%; height: 108%;
+          background: radial-gradient(ellipse at 30% 30%, rgba(253,240,200,0) 38%, #FDF0C8 39%, #F7CE55 68%, #E8A200 92%); }
+    .w2 { right: -28%; bottom: -52%; width: 98%; height: 118%;
+          background: radial-gradient(ellipse at 32% 32%, rgba(255,255,255,0) 42%, #FDF3CF 43%, #F5B800 72%, #DD9700 95%); opacity: .55; }
+    .w3 { right: -8%; bottom: -26%; width: 72%; height: 92%;
+          background: radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0) 44%, #FFE9A8 45%, #F2B84B 78%, #E39B00 98%); opacity: .8; }
+
+    /* 左上大字 */
+    .brand { position: absolute; left: 9%; top: 16%; color: #1a1a1a; user-select: none; }
+    .brand .ms { font-size: 26px; font-weight: 400; letter-spacing: .5px; }
+    .brand .ms sup { font-size: 11px; color: #666; }
+    .brand .word { font-size: 64px; font-weight: 300; line-height: 1.04; letter-spacing: -1px; }
+    .brand .year { font-size: 64px; font-weight: 200; color: #333; }
+    .brand .starting { margin-top: 10px; font-size: 16px; color: #444; }
+    .brand .starting::after { content: ""; animation: dots 1.6s steps(4, end) infinite; }
+    @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75%, 100% { content: "..."; } }
+
+    /* 左下 Office 四格图标 + 文字 */
+    .office { position: absolute; left: 9%; bottom: 12%; display: flex; align-items: center; gap: 10px; }
+    .office svg { width: 34px; height: 34px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+    .office span { font-size: 22px; font-weight: 300; color: #222; }
+
+    /* 底部版权 */
+    .copyright { position: absolute; left: 9%; bottom: 5%; font-size: 11px; color: #9a9a9a; }
+    /* 诚实的自我标注（不显眼） */
+    .note { position: absolute; right: 10px; top: 22px; font-size: 9px; color: #d0d0d0; }
+  </style>
+</head>
+<body>
+  <div class="top-controls"><span>_</span><span>✕</span></div>
+  <div class="ribbon-wave"><i class="w1"></i><i class="w2"></i><i class="w3"></i></div>
+  <div class="brand">
+    <div class="ms">wdt<sup>®</sup></div>
+    <div><span class="word">wdt</span> <span class="year">Markdown</span></div>
+    <div class="starting">正在启动</div>
+  </div>
+  <div class="office">
+    <svg viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg">
+      <!-- 自绘四格标识（非微软 Office 图标） -->
+      <rect x="2"  y="2"  width="14" height="14" rx="1.5" fill="#2a5ea8"/>
+      <rect x="18" y="2"  width="14" height="14" rx="1.5" fill="#3d78c3"/>
+      <rect x="2"  y="18" width="14" height="14" rx="1.5" fill="#61afef"/>
+      <rect x="18" y="18" width="14" height="14" rx="1.5" fill="#92b0d7"/>
+    </svg>
+    <span>wdt</span>
+  </div>
+  <div class="copyright">© 2026 wdt. Markdown editor.</div>
+</body>
+</html>
